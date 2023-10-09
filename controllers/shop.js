@@ -1,9 +1,9 @@
+const mongoose = require('mongoose');
 const Product = require('../models/product');
 const User = require('../models/user');
-const { getDb } = require('../util/database');
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then(products => {
       res.render('shop/product-list', {
         prods: products,
@@ -27,7 +27,7 @@ exports.getProduct = (req, res, next) => {
   //     });
   //   })
   //   .catch(err => console.log(err));
-  Product.getById(prodId)
+  Product.findById(prodId)
     .then(product => {
       res.render('shop/product-detail', {
         product: product,
@@ -39,7 +39,7 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then(products => {
       res.render('shop/index', {
         prods: products,
@@ -54,8 +54,7 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   const user = req.user;
-  const userObj = new User(user._id, user.userName, user.email, user.cart);
-  userObj
+  user
     .getCart()
     .then(products => {
       res.render('shop/cart', {
@@ -70,9 +69,9 @@ exports.getCart = (req, res, next) => {
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   const user = req.user;
-  const userObj = new User(user._id, user.userName, user.email, user.cart);
-  Product.getById(prodId).then(product => {
-    userObj.addToCart(product).then(response => {
+  // const userObj = new User(user._id, user.userName, user.email, user.cart);
+  Product.findById(prodId).then(product => {
+    user.addToCart(product).then(response => {
       res.redirect('/cart');
     })
   }).catch(err => console.log(err));
@@ -81,24 +80,21 @@ exports.postCart = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const user = req.user;
-  const userObj = new User(user._id, user.userName, user.email, user.cart);
-  userObj.removeFromCart(prodId).then(response => {
+  user.removeFromCart(prodId).then(response => {
     res.redirect('/cart');
   }).catch(err => console.log(err));
 };
 
 exports.postOrder = (req, res, next) => {
   const user = req.user;
-  const userObj = new User(user._id, user.userName, user.email, user.cart);
-  userObj.postOrder().then(response => {
+  user.postOrder().then(response => {
     res.redirect('/orders')
   })
 };
 
 exports.getOrders = (req, res, next) => {
   const user = req.user;
-  const userObj = new User(user._id, user.userName, user.email, user.cart);
-  userObj
+  user
     .getOrders()
     .then(orders => {
       res.render('shop/orders', {
