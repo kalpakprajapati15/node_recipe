@@ -2,12 +2,12 @@ const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
   const isLoggedIn = req.session.isLoggedIn;
-
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
-    isLoggedIn
+    isLoggedIn,
+    csrfToken: req.csrfToken()
   });
 };
 
@@ -53,7 +53,8 @@ exports.getEditProduct = (req, res, next) => {
         path: '/admin/edit-product',
         editing: editMode,
         product: product,
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken()
       });
     })
     .catch(err => console.log(err));
@@ -93,7 +94,8 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: 'Admin Products',
         path: '/admin/products',
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken()
       });
     })
     .catch(err => console.log(err));

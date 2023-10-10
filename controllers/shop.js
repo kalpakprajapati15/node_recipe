@@ -11,7 +11,8 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: 'All Products',
         path: '/products',
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken() // generating a csrf token which will be used in views. 
       });
     })
     .catch(err => {
@@ -29,7 +30,8 @@ exports.getProduct = (req, res, next) => {
         product: product,
         pageTitle: product.title,
         path: '/products',
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken()
       });
     })
     .catch(err => console.log(err));
@@ -44,7 +46,8 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken()
       });
     })
     .catch(err => {
@@ -63,7 +66,8 @@ exports.getCart = (req, res, next) => {
         path: '/cart',
         pageTitle: 'Your Cart',
         products: products,
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken()
       });
     })
     .catch(err => console.log(err));
@@ -125,7 +129,8 @@ exports.getOrders = (req, res, next) => {
         path: '/orders',
         pageTitle: 'Your Orders',
         orders: orders,
-        isLoggedIn
+        isLoggedIn,
+        csrfToken: req.csrfToken()
       });
     })
     .catch(err => console.log(err));
