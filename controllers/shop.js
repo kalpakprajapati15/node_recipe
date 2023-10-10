@@ -1,14 +1,17 @@
-const mongoose = require('mongoose');
 const Product = require('../models/product');
-const User = require('../models/user');
+const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
+  const isLoggedIn = req.session.isLoggedIn;
+
   Product.find()
     .then(products => {
+      console.log(products);
       res.render('shop/product-list', {
         prods: products,
         pageTitle: 'All Products',
-        path: '/products'
+        path: '/products',
+        isLoggedIn
       });
     })
     .catch(err => {
@@ -18,33 +21,30 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
-  // Product.findAll({ where: { id: prodId } })
-  //   .then(products => {
-  //     res.render('shop/product-detail', {
-  //       product: products[0],
-  //       pageTitle: products[0].title,
-  //       path: '/products'
-  //     });
-  //   })
-  //   .catch(err => console.log(err));
+  const isLoggedIn = req.session.isLoggedIn;
+
   Product.findById(prodId)
     .then(product => {
       res.render('shop/product-detail', {
         product: product,
         pageTitle: product.title,
-        path: '/products'
+        path: '/products',
+        isLoggedIn
       });
     })
     .catch(err => console.log(err));
 };
 
 exports.getIndex = (req, res, next) => {
+  const isLoggedIn = req.session.isLoggedIn;
+
   Product.find()
     .then(products => {
       res.render('shop/index', {
         prods: products,
         pageTitle: 'Shop',
-        path: '/'
+        path: '/',
+        isLoggedIn
       });
     })
     .catch(err => {
@@ -53,14 +53,17 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-  const user = req.user;
-  user
-    .getCart()
-    .then(products => {
+  const isLoggedIn = req.session.isLoggedIn;
+
+  req.user
+    .populate('cart.items.productId')
+    .then(user => {
+      const products = user.cart.items;
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
-        products: products
+        products: products,
+        isLoggedIn
       });
     })
     .catch(err => console.log(err));
@@ -68,39 +71,61 @@ exports.getCart = (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
-  const user = req.user;
-  // const userObj = new User(user._id, user.userName, user.email, user.cart);
-  Product.findById(prodId).then(product => {
-    user.addToCart(product).then(response => {
-      res.redirect('/cart');
+  Product.findById(prodId)
+    .then(product => {
+      return req.user.addToCart(product);
     })
-  }).catch(err => console.log(err));
+    .then(result => {
+      console.log(result);
+      res.redirect('/cart');
+    });
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  const user = req.user;
-  user.removeFromCart(prodId).then(response => {
-    res.redirect('/cart');
-  }).catch(err => console.log(err));
+  req.user
+    .removeFromCart(prodId)
+    .then(result => {
+      res.redirect('/cart');
+    })
+    .catch(err => console.log(err));
 };
 
 exports.postOrder = (req, res, next) => {
-  const user = req.user;
-  user.postOrder().then(response => {
-    res.redirect('/orders')
-  })
+  req.user
+    .populate('cart.items.productId')
+    .then(user => {
+      const products = user.cart.items.map(i => {
+        return { quantity: i.quantity, product: { ...i.productId._doc } };
+      });
+      const order = new Order({
+        user: {
+          name: req.user.name,
+          userId: req.user
+        },
+        products: products
+      });
+      return order.save();
+    })
+    .then(result => {
+      return req.user.clearCart();
+    })
+    .then(() => {
+      res.redirect('/orders');
+    })
+    .catch(err => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
-  const user = req.user;
-  user
-    .getOrders()
+  const isLoggedIn = req.session.isLoggedIn;
+
+  Order.find({ 'user.userId': req.user._id })
     .then(orders => {
       res.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Your Orders',
-        orders: orders
+        orders: orders,
+        isLoggedIn
       });
     })
     .catch(err => console.log(err));
