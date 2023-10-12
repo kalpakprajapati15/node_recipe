@@ -23,9 +23,11 @@
     "express": "^4.16.3",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.17.3",
+    "gmail-send": "^1.8.14",
     "mongodb": "^6.1.0",
     "mongoose": "^7.5.4",
     "mysql2": "^3.6.1",
+    "nodemailer": "^6.9.6",
     "pug": "^2.0.3",
     "sequelize": "^6.33.0"
   }
