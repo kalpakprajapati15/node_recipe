@@ -1,9 +1,13 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
+const fs = require('fs');
+const path = require('path');
+const pdfkit = require('pdfkit');
 
 exports.getProducts = (req, res, next) => {
   const isLoggedIn = req.session.isLoggedIn;
-
+// we can add pagination with skip((page no-1)* item per page);
+// then we can limit item per page with limit(item per page)
   Product.find()
     .then(products => {
       console.log(products);
@@ -135,3 +139,26 @@ exports.getOrders = (req, res, next) => {
     })
     .catch(err => console.log(err));
 };
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  const invoiceName = 'invoice-' + orderId + '.pdf';
+  const invoicePath = path.join('data', 'invoice', invoiceName);
+  const doc = new pdfkit();
+  Order.findOne({ _id: orderId }).then(order => {
+    doc.text(`Your order number is ${orderId}`);
+    order.products.forEach((element, index) => {
+      doc.text(`${index}. Product title is : ${element.product.title}. Product title is ${element.product.price}. Product quantity is ${element.quantity}`)
+    });
+    const writeStrean = doc.pipe(fs.createWriteStream(invoicePath));
+    writeStrean.on('finish', () => {
+      const file = fs.createReadStream(invoicePath) // creates a file stream.
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-disposition', 'attachment; filename = "' + invoiceName + '"')
+      file.pipe(res); // streams data to client, without loading it in memory. Huge advantage for large files. 
+    })
+    doc.end();
+  });
+
+
+}

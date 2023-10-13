@@ -9,6 +9,8 @@ const session = require('express-session');
 const csrf = require('csurf');
 const app = express();
 const flash = require('connect-flash');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 
 const mongoDbSessionStore = require('connect-mongodb-session')(session);
 // Configuring mongodb session store . 
@@ -30,7 +32,30 @@ const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => { // will be called on each file upload, and tell where to store
+    cb(null, 'images')
+  },
+  filename: (req, file, cb) => {
+    cb(null, uuidv4() + "-" + file.originalname); // file name to be stored. 
+  }
+})
+// using multer middleware to extract file data.  
+// dest tells multer to convert buffer data back to file and store at the specified path.
+app.use(multer({
+  storage: fileStorage, fileFilter: (req, file, cb) => {
+    const allowsMime = ['image/png', 'image/jpg', 'image/jpeg']
+    if (allowsMime.includes(file.mimetype)) {
+      cb(null, true)// accept file
+    } else {
+      cb(null, false)// reject file
+    }
+  }
+}).single('imageUrl'));
 app.use(express.static(path.join(__dirname, 'public')));
+// tell express to static load images. 
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 // Initialize session middleware. Secret key is used as a hash key. 
 app.use(session({
   secret: 'Kapfaf',

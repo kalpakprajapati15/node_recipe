@@ -11,7 +11,7 @@
   "author": "Maximilian Schwarzmüller",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^1.18.3"
+    "nodemon": "^1.19.4"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -26,9 +26,12 @@
     "gmail-send": "^1.8.14",
     "mongodb": "^6.1.0",
     "mongoose": "^7.5.4",
+    "multer": "^1.4.5-lts.1",
     "mysql2": "^3.6.1",
     "nodemailer": "^6.9.6",
+    "pdfkit": "^0.13.0",
     "pug": "^2.0.3",
-    "sequelize": "^6.33.0"
+    "sequelize": "^6.33.0",
+    "uuid": "^9.0.1"
   }
 }
